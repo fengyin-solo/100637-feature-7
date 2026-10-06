@@ -22,6 +22,7 @@
       <span v-for="item in statusSummary" :key="item.status" class="legend-item">
         {{ item.status }}：{{ item.count }}
       </span>
+      <span class="legend-item">已上报遗留待处理：{{ openIssues }}</span>
     </p>
 
     <form class="filter-bar" @submit.prevent="reload">
@@ -67,6 +68,27 @@
       <span>共 {{ total }} 条廊内巡检任务记录</span>
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
+
+    <section class="issue-panel">
+      <h3>本入口上报的遗留问题（同步至值班遗留清单，共 {{ patrolIssues.length }} 条）</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>巡检编号</th><th>路线</th><th>问题内容</th><th>登记日期</th><th>状态</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="issue in patrolIssues" :key="issue.id">
+            <td>{{ issue.sourceNo }}</td>
+            <td>{{ issue.chamber || '—' }}</td>
+            <td>{{ issue.content }}</td>
+            <td>{{ issue.createdAt }}</td>
+            <td>{{ issue.status }}</td>
+          </tr>
+          <tr v-if="!patrolIssues.length">
+            <td colspan="5" class="empty-state">本入口暂无上报问题；执行「上报问题」后会同步到值班遗留清单</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
   </section>
 </template>
 
@@ -79,7 +101,8 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
-import type { EntryRow } from '@/data/types'
+import { listIssues, openIssueCount } from '@/data/collab-store'
+import type { EntryRow, IssueRow } from '@/data/types'
 
 const meta = moduleMeta('patrol')
 const columns = ["巡检编号", "巡检路线", "巡检班组", "计划日期", "完成时间", "发现问题数", "巡检人员", "巡检状态"]
@@ -92,6 +115,8 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const patrolIssues = ref<IssueRow[]>([])
+const openIssues = computed(() => openIssueCount('廊内巡检'))
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
@@ -128,6 +153,7 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    patrolIssues.value = listIssues().filter((issue) => issue.source === '廊内巡检')
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '廊内巡检任务列表读取失败'
   }

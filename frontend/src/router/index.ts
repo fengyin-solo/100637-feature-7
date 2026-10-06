@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '@/views/Dashboard.vue'
 const Tunnel = () => import('@/views/tunnel/index.vue')
 const Pipeline = () => import('@/views/pipeline/index.vue')
+const FeeSettlement = () => import('@/views/feesettlement/index.vue')
 const Envmonitor = () => import('@/views/envmonitor/index.vue')
 const Ventilation = () => import('@/views/ventilation/index.vue')
 const Drainage = () => import('@/views/drainage/index.vue')
@@ -26,6 +27,7 @@ const router = createRouter({
     { path: '/', name: 'dashboard', component: Dashboard },
     { path: '/tunnel', name: 'tunnel', component: Tunnel },
     { path: '/pipeline', name: 'pipeline', component: Pipeline },
+    { path: '/feesettlement', name: 'feesettlement', component: FeeSettlement },
     { path: '/envmonitor', name: 'envmonitor', component: Envmonitor },
     { path: '/ventilation', name: 'ventilation', component: Ventilation },
     { path: '/drainage', name: 'drainage', component: Drainage },
