@@ -1,6 +1,13 @@
 import { MODULE_BY_KEY } from '@/data/modules'
-import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
-import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
+import {
+  allRows,
+  listFees,
+  listNotices,
+  listRows,
+  resetRows as storeResetRows,
+  saveRows,
+} from '@/data/local-store'
+import type { ActionResult, EntryRow, ModuleMeta, NoticeRow, OverviewResult, PageResult } from '@/data/types'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
 const NEGATIVE_ACTIONS = ['撤销', '作废', '拒绝', '驳回', '停用', '忽略', '下线', '回滚']
@@ -57,8 +64,13 @@ export function runAction(key: string, id: number, action: string): ActionResult
 }
 
 export function resetModule(key: string): PageResult {
-  resetRows(key)
+  storeResetRows(key)
   return listEntries(key)
+}
+
+/** 管线页的「重置为初始台账」入口。 */
+export function resetRows(key: string): void {
+  storeResetRows(key)
 }
 
 export function exportEntries(key: string): { filename: string; content: string } {
@@ -68,7 +80,7 @@ export function exportEntries(key: string): { filename: string; content: string 
   for (const row of listRows(key)) {
     lines.push([row.id, ...meta.fields.map((field) => row[field] ?? ''), row.status].join(','))
   }
-  return { filename: `${meta.name}-清单.csv`, content: `\uFEFF${lines.join('\n')}` }
+  return { filename: `${meta.name}-清单.csv`, content: `﻿${lines.join('\n')}` }
 }
 
 export function downloadEntries(key: string): void {
@@ -83,6 +95,13 @@ export function downloadEntries(key: string): void {
   document.body.removeChild(anchor)
   URL.revokeObjectURL(url)
 }
+
+/** 值班清单同步事项（登记、迁出、上报问题），管线页与值班页取同一份。 */
+export function listSyncedNotices(): NoticeRow[] {
+  return listNotices()
+}
+
+export { listFees, listRows }
 
 export function loadOverview(): OverviewResult {
   const rows = allRows()
